@@ -14,7 +14,6 @@ var delim = new Buffer.from('split')
 var packets = 0;
 var buffer = new Buffer.alloc(0);
 var filename = ""
-var evt = ''
 var readlineSync = require('readline-sync')
 const {
   generateKeyPairSync,
@@ -64,7 +63,6 @@ client.on('data', function (data) {
         console.log(userType);
         let bufOption = Buffer.from("df")
         let client0diffieargs = joinBuffers([bufOption, client0Diffie.getPrime(), client0Diffie.getGenerator(), cliente0Key]);
-        console.log(bsplit(client0diffieargs, delim)[0].toString());
         client.write(client0diffieargs); //principal
         client.pipe(client);
       }
@@ -81,26 +79,23 @@ client.on('data', function (data) {
         let bufOption = Buffer.from("cliente1key")
         client.write(joinBuffers([bufOption, cliente1Key]))
         client.pipe(client);
-        console.log(SecretKey);
       }
-      console.log("passei0 id" + userType)
     }
   }
 
-  if (command === "cliente1key") { // id command
+  if (command === "cliente1key" && userType=='1') { // id command
     if (dataBufferArgs.length === 2) {
       if (userType == "0") {
         SecretKey = client0Diffie.computeSecret(dataBufferArgs[1])
-        console.log(SecretKey);
       }
     }
   }
 
-  if (command == "upd") { // id command
-
+  if (command == "upd" && userType=="1") { // id command
+    console.log(command);
     console.log(data);
     buffer = Buffer.concat([buffer, dataBufferArgs[2]]);
-    var writeStream = fs.createWriteStream(path.join('/home/deli/Documents/SSI/tg/client', dataBufferArgs[1]));
+    var writeStream = fs.createWriteStream(path.join('/home/deli/Documents/SSI/tg/clientv2 (pc2)', dataBufferArgs[1]));
     console.log("buffer size", buffer.length);
     while (buffer.length) {
       var head = buffer.slice(0, 4);
@@ -203,7 +198,20 @@ watch('./', { recursive: true }, function (evt, name) {
     upd = Buffer.from("upd")
     nameBuffer = Buffer.from(name)
     var totalBytes = 0;
+    fs.readFile(name, function(err, dataf) {
+      if (err) throw err;
+      console.log(dataf);
+      var updName = joinBuffers([upd, nameBuffer, dataf])
+        client.write(updName);
+        console.log("all: " + bsplit(updName, delim).length);
+        console.log("dataf: " + bsplit(dataf, delim).length);
+        client.pipe(client);
 
+
+
+  });
+
+    /*
     var readStream = fs.createReadStream(name, { highWaterMark: 16384 });
     readStream.on('data', function (data) {
       var head = new Buffer.from("FILE");
@@ -216,15 +224,24 @@ watch('./', { recursive: true }, function (evt, name) {
       var delimiter = new Buffer.from("@");
       var pack = Buffer.concat([head, size, data, delimiter]);
       totalBytes += pack.length;
-      client.write(joinBuffers([upd, nameBuffer,pack]));
-      client.pipe(client);
 
       readStream.on('close', function () {
         //client.end();
         console.log("total bytes sent", totalBytes);
-      });
-    });
 
+      });
+      readStream.on('end', function () {
+        //client.end();
+        var updName = joinBuffers([upd, nameBuffer, pack])
+        client.write(updName);
+        console.log("pack:" + bsplit(pack, delim).length);
+        console.log("all: " + bsplit(updName, delim).length);
+
+        
+        client.pipe(client);
+      })
+    });
+*/
   }
 
   if (evt == 'remove') {

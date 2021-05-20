@@ -53,6 +53,7 @@ var server = net.createServer(function (client) {
         return; // prevents other code from running
       }
     }
+
     if (command === "cliente1key") { // id command
       if (dataBufferArgs.length === 2) {
         clients[0].write(data)
@@ -65,43 +66,13 @@ var server = net.createServer(function (client) {
     }
 
     if (command === "upd") { // id command
+      console.log(data.toString());
       if (dataBufferArgs.length === 3) {
         clients[1].write(data)
         clients[1].pipe(clients[1]);
-      
+
         console.log(data);
-        buffer = Buffer.concat([buffer, dataBufferArgs[2]]);
-        var writeStream = fs.createWriteStream(path.join(__dirname, dataBufferArgs[1]));
-        console.log("buffer size", buffer.length);
-        while (buffer.length) {
-          var head = buffer.slice(0, 4);
-          console.log("head", head.toString());
-          if (head.toString() != "FILE") {
-            console.log("ERROR!!!!");
-            process.exit(1);
-          }
-          var sizeHex = buffer.slice(4, 8);
-          var size = parseInt(sizeHex, 16);
-      
-          console.log("size", size);
-      
-          var content = buffer.slice(8, size + 8);
-          var delimiter = buffer.slice(size + 8, size + 9);
-          console.log("delimiter", delimiter.toString());
-          if (delimiter != "@") {
-            console.log("wrong delimiter!!!");
-            process.exit(1);
-          }
-      
-          writeStream.write(content);
-          buffer = buffer.slice(size + 9);
-      
-        }
-        packets = 1;
-      
-        setTimeout(function () {
-          writeStream.end();
-        }, 2000);
+
       }
       else {
         client.write("ERROR no data");
@@ -113,11 +84,6 @@ var server = net.createServer(function (client) {
       if (dataBufferArgs.length === 2) {
         clients[1].write(data)
         clients[1].pipe(clients[1]);
-        
-        //remove
-        filename = dataBufferArgs[1];
-        fs.unlinkSync(filename)
-
 
       }
       else {
